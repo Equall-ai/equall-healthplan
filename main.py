@@ -137,8 +137,20 @@ def process_pdf(file):
             else:
                 finalres.append(ast.literal_eval(str(i)))
 
+    # Set to keep track of seen services
+    seen_services = set()
+
+    # List to keep unique JSON blobs
+    unique_json_list = []
+
+    for blob in finalres:
+        service_value = blob['Service']
+        if service_value not in seen_services:
+            seen_services.add(service_value)
+            unique_json_list.append(blob)
+
     return {
-        "services": finalres
+        "services": unique_json_list
     }
 
 
