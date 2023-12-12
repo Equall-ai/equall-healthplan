@@ -12,10 +12,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 OPENAI_API_KEY = st.secrets["OPENAI_KEY"]
-
-if not OPENAI_API_KEY:
-    OPENAI_API_KEY = os.environ.get("OPENAI_KEY")
-
 if not OPENAI_API_KEY:
     raise ValueError("Missing OPENAI API KEY")
 
