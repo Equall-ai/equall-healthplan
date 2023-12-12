@@ -161,7 +161,8 @@ def main():
                 with st.expander(service["Service"]):
                     st.write(service["Details"])
         except Exception as e:
-            st.error(f"Error processing file {uploaded_file.name}: {e}")
+            #st.error(f"Error processing file {uploaded_file.name}: {e}")
+            pass
 
 
 if __name__ == "__main__":
