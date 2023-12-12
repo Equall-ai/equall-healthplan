@@ -1,6 +1,5 @@
 import logging
 import ast
-import os
 import streamlit as st
 
 from PyPDF2 import PdfReader
@@ -8,15 +7,19 @@ from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage, SystemMessage
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 OPENAI_API_KEY = st.secrets["OPENAI_KEY"]
 if not OPENAI_API_KEY:
     raise ValueError("Missing OPENAI API KEY")
 
+
 # Function to process the PDF and return a sample JSON blob
 def process_pdf(file):
+
     # Upload PDF, grab text
     reader = PdfReader(file)
     allpagetext = []
@@ -26,14 +29,10 @@ def process_pdf(file):
     # Page by page, search for "Prior Authorization" , identify all page numbers +/- 1
     relpages = []
     for page in range(len(allpagetext)):
-        #pagetext = allpagetext[page]
-        #pagetext = unicodedata.normalize('NFKC', pagetext)
-        #pagetext = pagetext.replace(' ', '')
-        #if "PriorAuthorization" in pagetext or "Priorauthorization" in pagetext or "priorauthorization" in pagetext:
-        #  relpages.append([max(0, page-1), page, min(page+1, len(allpagetext))])
         if "Prior Authorization" in allpagetext[page]:
             relpages.append([page-1, page, page+1])
-    chat = ChatOpenAI(temperature=0,openai_api_key=OPENAI_API_KEY, model_name="gpt-4", max_tokens=1500)
+
+    chat = ChatOpenAI(temperature=0, openai_api_key=OPENAI_API_KEY, model_name="gpt-4", max_tokens=1500)
     instruct = """
     You are a healthcare insurance policy bot.
 
@@ -106,17 +105,6 @@ def process_pdf(file):
     Actual Text:
     """
     
-    #gptresponses = []
-    #for option in relpages[1:4]:
-    #    alltext = allpagetext[option[0]] + allpagetext[option[1]] + allpagetext[option[2]]
-    #    messages = [
-    #        SystemMessage(content=instruct),
-    #        HumanMessage(content=prompt + alltext)
-    #    ]
-    #    response = chat(messages)
-    #    gptresponses.append(response.content)
-    
-
     # Function to perform the task for each iteration
     def process_option(option, instruct, prompt, allpagetext):
         alltext = allpagetext[option[0]] + allpagetext[option[1]] + allpagetext[option[2]]
@@ -131,6 +119,7 @@ def process_pdf(file):
     num_workers = 8  # Number of workers
     tasks = relpages  # Assuming there are 5 tasks
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        
         # Create a future for each task
         futures = [executor.submit(process_option, task, instruct, prompt, allpagetext) for task in tasks]
 
@@ -148,19 +137,10 @@ def process_pdf(file):
             else:
                 finalres.append(ast.literal_eval(str(i)))
 
-    # For demonstration, returning a static JSON blob
-    # In a real-world application, this should be generated based on the PDF content
-    #json_blob = {
-    #    "services": [
-    #        {"Service": "Service 1", "Details": "Details of Service 1"},
-    #        {"Service": "Service 2", "Details": "Details of Service 2"},
-    #        # Add more services as needed
-    #    ]
-    #}
-    json_blob = {
+    return {
         "services": finalres
     }
-    return json_blob
+
 
 # Streamlit app main function
 def main():
