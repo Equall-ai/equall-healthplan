@@ -174,7 +174,25 @@ def main():
                     st.write(service["Details"])
         except Exception as e:
             #st.error(f"Error processing file {uploaded_file.name}: {e}")
-            pass
+            try:
+                # Process the PDF
+                result = process_pdf(uploaded_file)
+                
+                # Display dropdowns based on the JSON blob
+                for service in result["services"]:
+                    with st.expander(service["Service"]):
+                        st.write(service["Details"])
+            except:
+                try:
+                    # Process the PDF
+                    result = process_pdf(uploaded_file)
+                    
+                    # Display dropdowns based on the JSON blob
+                    for service in result["services"]:
+                        with st.expander(service["Service"]):
+                            st.write(service["Details"])
+                except:
+                    pass
 
 
 if __name__ == "__main__":
